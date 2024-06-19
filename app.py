@@ -1,20 +1,15 @@
 import streamlit as st
 from openai import OpenAI
-import os
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
-api_key = os.getenv("openai_api_key")
 
 # Streamlit Subheading
 st.subheader("Convert Between SQL and Pandas Code", divider='rainbow')
 
-# Create an OpenAI object
-client = OpenAI(api_key=api_key)
+# Input for OpenAI API Key
+api_key = st.text_input("Enter your OpenAI API key", type="password")
 
 # Function to convert SQL to Pandas
-def sql_to_pandas(query):
+def sql_to_pandas(query, api_key):
+    client = OpenAI(api_key=api_key)
     response = client.chat.completions.create(
         model="gpt-3.5-turbo-0125",
         messages=[
@@ -25,7 +20,8 @@ def sql_to_pandas(query):
     return response.choices[0].message.content
 
 # Function to convert Pandas to SQL
-def pandas_to_sql(query):
+def pandas_to_sql(query, api_key):
+    client = OpenAI(api_key=api_key)
     response = client.chat.completions.create(
         model="gpt-3.5-turbo-0125",
         messages=[
@@ -46,12 +42,14 @@ input_text = st.text_area("Enter your code here")
 
 # Streamlit button to generate response
 if st.button("Convert Code"):
-    if input_text:
+    if not api_key:
+        st.warning("Please enter your OpenAI API key.")
+    elif not input_text:
+        st.warning("Please enter the code to convert.")
+    else:
         with st.spinner("Generating the equivalent code..."):
             if conversion_type == 'SQL to Pandas':
-                response = sql_to_pandas(input_text)
+                response = sql_to_pandas(input_text, api_key)
             else:
-                response = pandas_to_sql(input_text)
+                response = pandas_to_sql(input_text, api_key)
         st.write(response)
-    else:
-        st.warning("Please enter the code to convert.")
